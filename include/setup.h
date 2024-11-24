@@ -4,8 +4,11 @@
 /* Flame sensor */
 #define FLAME_PIN		33
 
-/* MQ-2 sensor */
-#define MQ2_PIN			34
+/* MQ-2 sensor for smoke detection */
+#define MQ2_ANALOG_PIN		34
+
+/* MQ-2 sensor for gas leak detection */
+#define MQ2_DIGITAL_PIN		35
 
 /* MQ-2 smoke threshold */
 #define MQ2_SMOKE_THRESHOLD	450
