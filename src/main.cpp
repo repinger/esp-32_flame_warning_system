@@ -19,7 +19,8 @@ void setup(void)
 {
         Serial.begin(115200);
 
-        pinMode(MQ2_PIN, INPUT);
+        pinMode(MQ2_ANALOG_PIN, INPUT);
+        pinMode(MQ2_DIGITAL_PIN, INPUT);
         pinMode(FLAME_PIN, INPUT);
         pinMode(BUZZER_PIN, OUTPUT);
 
@@ -44,6 +45,7 @@ void setup(void)
                 Serial.println(client.getLastErrorMessage());
         }
 #endif
+
         delay(5000);
 }
 
@@ -53,8 +55,13 @@ void loop(void)
         static unsigned long lastSendTime = 0;
         Point sensors("esp32_node-1");
 #endif
-        unsigned int smokeLevel = analogRead(MQ2_PIN);
+        unsigned int smokeLevel = analogRead(MQ2_ANALOG_PIN);
         unsigned int flameLevel = analogRead(FLAME_PIN);
+        /*
+         * Needs to be inverted in order to get logical
+         * HIGH when a gas leak is detected.
+         */
+        unsigned int gasLevel = !digitalRead(MQ2_DIGITAL_PIN);
 
         smokeLevel = map(smokeLevel, 100, 4096, 0, 2048);
         flameLevel = map(flameLevel, 0, 4096, 3072, 0);
@@ -64,12 +71,16 @@ void loop(void)
         Serial.println(smokeLevel);
         Serial.print("Flame: ");
         Serial.println(flameLevel);
+        Serial.print("Gas: ");
+        Serial.println(gasLevel);
         Serial.println();
 #endif
 
         if (smokeLevel > MQ2_SMOKE_THRESHOLD && flameLevel > FLAME_THRESHOLD)
                 buzz(200);
-        else if (smokeLevel > MQ2_SMOKE_THRESHOLD || flameLevel > FLAME_THRESHOLD)
+        else if (smokeLevel > MQ2_SMOKE_THRESHOLD
+                || flameLevel > FLAME_THRESHOLD
+                || gasLevel == HIGH)
                 buzz(500);
 
 #if ENABLE_INFLUXDB
@@ -78,6 +89,7 @@ void loop(void)
 
                 sensors.addField("smokeLevel", smokeLevel);
                 sensors.addField("flameLevel", flameLevel);
+                sensors.addField("gasLevel", gasLevel);
 
                 if (!client.writePoint(sensors)) {
                         Serial.print("Failed to write data to InfluxDB: ");
