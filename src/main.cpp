@@ -37,19 +37,18 @@ void setup(void)
         wifiManager.setConnectTimeout(5);
 
         if (!wifiManager.autoConnect("Flame Warning System")) {
-                Serial.println("Failed to connect to Wi-Fi. Restarting . . .");
+                printf("Failed to connect to Wi-Fi. Restarting . . .\n");
                 ESP.restart();
         }
 
         timeSync(TZ_INFO, "time.cloudflare.com");
 
-        if (client.validateConnection()) {
-                Serial.print("Connected to InfluxDB: ");
-                Serial.println(client.getServerUrl());
-        } else {
-                Serial.print("InfluxDB connection failed: ");
-                Serial.println(client.getLastErrorMessage());
-        }
+        if (client.validateConnection())
+                printf("Connected to InfluxDB: %s\n",
+			client.getServerUrl().c_str());
+        else
+                printf("InfluxDB connection failed: %s\n",
+			client.getLastErrorMessage().c_str());
 #endif
 
         delay(5000);
@@ -58,38 +57,36 @@ void setup(void)
 void loop(void)
 {
 #if ENABLE_INFLUXDB
-        static unsigned long lastSendTime = 0;
+        static unsigned long lastSendTime;
         Point sensors("esp32_node-1");
 #endif
-        float temperatureLevel = dht.readTemperature();
-        unsigned int smokeLevel = analogRead(MQ2_ANALOG_PIN);
-        unsigned int flameLevel = analogRead(FLAME_PIN);
+	float temperatureLevel = dht.readTemperature();
+        unsigned int smokeLevel = map(analogRead(MQ2_ANALOG_PIN), 100, 4096, 0, 2048);
+        unsigned int flameLevel = map(analogRead(FLAME_PIN), 0, 4096, 3072, 0);
         /*
          * Needs to be inverted in order to get logical
          * HIGH when a gas leak is detected.
          */
         unsigned int gasLevel = !digitalRead(MQ2_DIGITAL_PIN);
+	/* Init sensors class */
+        Sensors node_sensors(temperatureLevel, smokeLevel, flameLevel, gasLevel);
 
-        smokeLevel = map(smokeLevel, 100, 4096, 0, 2048);
-        flameLevel = map(flameLevel, 0, 4096, 3072, 0);
+	int tempStatus = node_sensors.isHighTempDetected();
+	int smokeStatus = node_sensors.isSmokeDetected();
+	int flameStatus = node_sensors.isFireDetected();
+	int gasStatus = node_sensors.isGasLeakDetected();
 
 #if DEBUG
-        Serial.print("Smoke: ");
-        Serial.println(smokeLevel);
-        Serial.print("Flame: ");
-        Serial.println(flameLevel);
-        Serial.print("Gas: ");
-        Serial.println(gasLevel);
-        Serial.print("Temp: ");
-        Serial.println(temperatureLevel);
-        Serial.println();
+        printf("Smoke: %u\nFlame: %u\nGas: %u\nTemp: %.2f\n\n",
+		node_sensors.getSmokeLevel(),
+                node_sensors.getFlameLevel(),
+                node_sensors.getGasLevel(),
+                node_sensors.getTempLevel());
 #endif
 
-        if (smoke_detected(smokeLevel) && fire_detected(flameLevel)
-            && gas_leak_detected(gasLevel) && high_temp_detected(temperatureLevel))
+        if (tempStatus && smokeStatus && flameStatus && gasStatus)
                 buzz(200);
-        else if (smoke_detected(smokeLevel) || fire_detected(flameLevel)
-                 || gas_leak_detected(gasLevel) || high_temp_detected(temperatureLevel))
+        else if (tempStatus || smokeStatus || flameStatus || gasStatus)
                 buzz(500);
 
 #if ENABLE_INFLUXDB
@@ -103,15 +100,14 @@ void loop(void)
                 sensors.addField("gasLevel", gasLevel);
 
                 /* Send status */
-                sensors.addField("isTemperatureHigh", high_temp_detected(temperatureLevel));
-                sensors.addField("isSmokeDetected", smoke_detected(smokeLevel));
-                sensors.addField("isFlameDetected", fire_detected(flameLevel));
-                sensors.addField("isGasDetected", gas_leak_detected(gasLevel));
+                sensors.addField("isTemperatureHigh", tempStatus);
+                sensors.addField("isSmokeDetected", smokeStatus);
+                sensors.addField("isFlameDetected", flameStatus);
+                sensors.addField("isGasDetected", gasStatus);
 
-                if (!client.writePoint(sensors)) {
-                        Serial.print("Failed to write data to InfluxDB: ");
-                        Serial.println(client.getLastErrorMessage());
-                }
+                if (!client.writePoint(sensors))
+                        printf("Failed to write data to InfluxDB: %s\n",
+                                client.getLastErrorMessage().c_str());
 
                 lastSendTime = millis();
         }

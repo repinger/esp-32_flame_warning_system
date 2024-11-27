@@ -1,35 +1,30 @@
 #include <Arduino.h>
 #include <sensors.h>
 
-int smoke_detected(int smokeLevel)
-{
-	if (smokeLevel >= MQ2_MIN_SMOKE_THRESHOLD
-	    && smokeLevel <= MQ2_MAX_SMOKE_THRESHOLD)
-		return true;
+Sensors::Sensors(float temperatureLevel, unsigned int smokeLevel,
+                 unsigned int flameLevel, unsigned int gasLevel) :
+	temperatureLevel(temperatureLevel),
+	smokeLevel(smokeLevel),
+	flameLevel(flameLevel),
+	gasLevel(gasLevel) {}
 
-	return false;
+int Sensors::isSmokeDetected(void)
+{
+	return (smokeLevel >= MQ2_MIN_SMOKE_THRESHOLD &&
+	        smokeLevel <= MQ2_MAX_SMOKE_THRESHOLD);
 }
 
-int fire_detected(int flameLevel)
+int Sensors::isFireDetected(void)
 {
-	if (flameLevel >= FLAME_THRESHOLD)
-		return true;
-
-	return false;
+	return (flameLevel >= FLAME_THRESHOLD);
 }
 
-int gas_leak_detected(int gasLevel)
+int Sensors::isGasLeakDetected(void)
 {
-	if (gasLevel == HIGH)
-		return true;
-
-	return false;
+	return (gasLevel == HIGH);
 }
 
-int high_temp_detected(float temp)
+int Sensors::isHighTempDetected(void)
 {
-	if (temp >= DHT22_TEMP_THRESHOLD)
-		return true;
-
-	return false;
+	return (temperatureLevel >= DHT22_TEMP_THRESHOLD);
 }
