@@ -2,6 +2,7 @@
 #include <WiFiManager.h>
 
 #include <setup.h>
+#include <sensors.h>
 #if ENABLE_INFLUXDB
 #include <influxdb_setup.h>
 
@@ -67,9 +68,9 @@ void loop(void)
         Serial.println();
 #endif
 
-        if (smokeLevel > MQ2_SMOKE_THRESHOLD && flameLevel > FLAME_THRESHOLD)
+        if (smoke_detected(smokeLevel) && fire_detected(flameLevel))
                 buzz(200);
-        else if (smokeLevel > MQ2_SMOKE_THRESHOLD || flameLevel > FLAME_THRESHOLD)
+        else if (smoke_detected(smokeLevel) || fire_detected(flameLevel))
                 buzz(500);
 
 #if ENABLE_INFLUXDB
