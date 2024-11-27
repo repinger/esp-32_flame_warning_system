@@ -1,0 +1,14 @@
+root = true
+
+[*]
+end_of_line = lf
+insert_final_newline = true
+charset = utf-8
+
+[*.cpp]
+indent_style = tab
+tab_width = 8
+
+[*.h]
+indent_style = tab
+tab_width = 8
