@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include <sensors.h>
 
-bool smoke_detected(int smokeLevel)
+int smoke_detected(int smokeLevel)
 {
 	if (smokeLevel >= MQ2_MIN_SMOKE_THRESHOLD
 	    && smokeLevel <= MQ2_MAX_SMOKE_THRESHOLD)
@@ -10,7 +10,7 @@ bool smoke_detected(int smokeLevel)
 	return false;
 }
 
-bool fire_detected(int flameLevel)
+int fire_detected(int flameLevel)
 {
 	if (flameLevel >= FLAME_THRESHOLD)
 		return true;
@@ -18,7 +18,7 @@ bool fire_detected(int flameLevel)
 	return false;
 }
 
-bool gas_leak_detected(int gasLevel)
+int gas_leak_detected(int gasLevel)
 {
 	if (gasLevel == HIGH)
 		return true;
@@ -26,7 +26,7 @@ bool gas_leak_detected(int gasLevel)
 	return false;
 }
 
-bool high_temp_detected(float temp)
+int high_temp_detected(float temp)
 {
 	if (temp >= DHT22_TEMP_THRESHOLD)
 		return true;
