@@ -85,9 +85,16 @@ void loop(void)
         if ((millis() - lastSendTime) >= 5000) {
                 sensors.clearFields();
 
+                /* Send sensor readings */
                 sensors.addField("temperatureLevel", temperatureLevel);
                 sensors.addField("smokeLevel", smokeLevel);
                 sensors.addField("flameLevel", flameLevel);
+
+                /* Send status */
+                sensors.addField("isTemperatureHigh", high_temp_detected(temperatureLevel));
+                sensors.addField("isSmokeDetected", smoke_detected(smokeLevel));
+                sensors.addField("isFlameDetected", fire_detected(flameLevel));
+                sensors.addField("isGasDetected", gas_leak_detected(gasLevel));
 
                 if (!client.writePoint(sensors)) {
                         Serial.print("Failed to write data to InfluxDB: ");

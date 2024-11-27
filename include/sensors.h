@@ -10,6 +10,6 @@
 #define DHT_TYPE			DHT22
 
 /* Scenarios */
-bool smoke_detected(int smokeLevel);
-bool fire_detected(int flameLevel);
-bool high_temp_detected(float temp);
+int smoke_detected(int smokeLevel);
+int fire_detected(int flameLevel);
+int high_temp_detected(float temp);
