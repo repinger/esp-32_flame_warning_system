@@ -10,6 +10,9 @@
 /* MQ-2 sensor for gas leak detection */
 #define MQ2_DIGITAL_PIN		35
 
+/* DHT-22 sensor for temperature */
+#define DHT22_PIN		14
+
 /* Whether to enable InfluxDB or not */
 #define ENABLE_INFLUXDB		1
 

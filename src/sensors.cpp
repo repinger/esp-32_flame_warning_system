@@ -25,3 +25,11 @@ bool gas_leak_detected(int gasLevel)
 
 	return false;
 }
+
+bool high_temp_detected(float temp)
+{
+	if (temp >= DHT22_TEMP_THRESHOLD)
+		return true;
+
+	return false;
+}
