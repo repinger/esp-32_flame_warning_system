@@ -1,11 +1,11 @@
 /* Buzzer */
-#define BUZZER_PIN		26
+#define BUZZER_PIN		13
 
 /* Flame sensor */
-#define FLAME_PIN		27
+#define FLAME_PIN		35
 
 /* MQ-2 sensor */
-#define MQ2_PIN			32
+#define MQ2_PIN			36
 
 /* DHT-22 sensor for temperature */
 #define DHT22_PIN		14
